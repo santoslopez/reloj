@@ -99,6 +99,8 @@ private static void enviarRespuesta(BufferedWriter writer, String archivo,Socket
     writer.write("Keep-Alive: timeout=15, max=3\r\n");
     writer.write("Content-Length: " + contenidoArchivo.length + "\r\n");
     writer.write("Content-Type: "+contentTipo+"\r\n");
+    writer.write("Cache-Control: max-age=3600\r\n"); // Tiempo de caché en segundos
+    
     //System.out.println("Content-Type: "+contentTipo+"\r\n");
     //System.out.println("Content-Length: "+contenidoArchivo.length+"\r\n");
 
