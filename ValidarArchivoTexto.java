@@ -14,24 +14,6 @@ public class ValidarArchivoTexto{
         return instancia;
     }
 
-    /*public static void mostrarContenidoArchivo(String nombreArchivo){
-        try{
-            
-            File archivo = new File(nombreArchivo);
-            if (!archivo.exists()) {
-                System.out.println("El archivo "+nombreArchivo+" no existe");
-                return;
-            }
-            BufferedReader br = new BufferedReader(new FileReader(nombreArchivo));
-            String linea;
-            while((linea=br.readLine())!=null){
-                System.out.println(linea);
-            }
-        }catch(IOException ex){
-            System.out.println("Error al leer el archivo: "+ex);
-        }
-    }*/
-
     public static void validarArchivo(String identificador,int valor,String nombreArchivo,String mensaje,String tipoAccion){
         try{
             if(tipoAccion=="lectura"){
@@ -61,14 +43,13 @@ public class ValidarArchivoTexto{
 
         }
     }
+    
     public int getPrimeraFilaValorArchivo(String nombreArchivo){
         String primeraLineaHilos="";
         try{
             // Se recupera el numero de hilos del archivo de configuración
             BufferedReader br = new BufferedReader(new FileReader(nombreArchivo));
-            primeraLineaHilos = br.readLine();;        
-        
- 
+            primeraLineaHilos = br.readLine();     
         }catch(Exception e){
             System.out.println("Error al iniciar el servidor");
         }

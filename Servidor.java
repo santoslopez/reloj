@@ -10,8 +10,6 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.net.BindException;
-
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
@@ -19,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.FileReader;
+import java.net.SocketException;
 
 public class Servidor{
     private static ContentType tipos = new ContentType();
@@ -50,66 +49,69 @@ public class Servidor{
     }
 
     private static void manejadorCliente(Socket clientSocket) {
-    try (
-        BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))
-    ) {
-        String request = reader.readLine();
-        
-        // necesario para separar el request
-        String[] partes = request.split(" "); 
-        
-        if (request != null) {
-            // comparamos el request con el archivo que queremos enviar
-            String ruta = partes[1].substring(1); // Elimina la "/" al principio
-
-            if (partes[1].equals("/index.html") || partes[1].equals("/index") || partes[1].equals("/")) {
-                String pagina = "www/index.html";  
-                enviarRespuesta(writer,pagina,clientSocket);
-            //}else {
-                //String archivo = "404.html";
-                //enviarRespuesta(writer,archivo,clientSocket);
-            }else{
-                String archivo = ruta;
-                System.out.println("Archivo..................: "+archivo);
-                enviarRespuesta(writer,archivo,clientSocket);
+        try (
+            InputStream input = clientSocket.getInputStream();
+            OutputStream output = clientSocket.getOutputStream()
+        ) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            
+            // Leer la solicitud del cliente (ignorando las cabeceras por ahora)
+            StringBuilder request = new StringBuilder();
+            while ((bytesRead = input.read(buffer)) != -1) {
+                request.append(new String(buffer, 0, bytesRead));
+                if (request.toString().endsWith("\r\n\r\n")) {
+                    break; // Fin de la solicitud HTTP
+                }
             }
-        }
-    } catch (IOException e) {
-       
-        System.out.println("Se produjo el siguiente error en el servidor: " + e.getMessage());
-    } finally {
-        try {
-            clientSocket.close();
+
+            // Analizar la solicitud para obtener la ruta del archivo solicitado
+            String[] lines = request.toString().split("\r\n");
+            String[] requestLine = lines[0].split(" ");
+            String ruta = requestLine[1].substring(1); // Elimina el primer '/' en la ruta
+            
+            // Leer el archivo y enviarlo en paquetes
+            Path filePath = Paths.get(ruta);
+             if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
+                byte[] fileData = Files.readAllBytes(filePath);
+
+                String contentType = ContentType.getInstancia().recuperarContentType(ruta);
+                
+                // Establecer los encabezados para visualizar el archivo en el navegador
+                String responseHeaders = "HTTP/1.1 200 OK\r\n" +
+                                        "Content-Type: " + contentType + "\r\n" +
+                                        "Cache-Control: max-age=60, public\r\n" + // 1 minuto
+                                        "Content-Disposition: inline\r\n" + // Visualización en el navegador
+                                        "Content-Length: " + fileData.length + "\r\n\r\n";
+                                        
+                output.write(responseHeaders.getBytes());
+                output.write(fileData);
+                output.flush();
+                
+                // Enviar el archivo en paquetes
+                for (int i = 0; i < fileData.length; i++) {
+                    output.write(fileData[i]);
+                    output.flush();
+                }
+            } else {
+                // Archivo no encontrado, enviar respuesta 404
+                String respuesta404 = "HTTP/1.1 404 Not Found\r\n\r\n";
+                output.write(respuesta404.getBytes());
+                output.flush();
+            }
+
+        } catch (SocketException se) {
+            System.out.println("Se produjo una excepción de SocketException: " + se.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
-}
 
-// Es lo que se le envia al usuario cliente
-private static void enviarRespuesta(BufferedWriter writer, String archivo,Socket clientSocket) throws IOException {
-    byte[] contenidoArchivo = Files.readAllBytes(Paths.get(archivo));
-
-    String contentTipo = tipos.recuperarContentType(archivo);
-    
-    writer.write("HTTP/1.1 200 OK\r\n");
-    // tratar de tener una conexion persistente
-    writer.write("Connection: Keep-Alive\r\n");
-    writer.write("Keep-Alive: timeout=15, max=3\r\n");
-    writer.write("Content-Length: " + contenidoArchivo.length + "\r\n");
-    writer.write("Content-Type: "+contentTipo+"\r\n");
-    writer.write("Cache-Control: max-age=3600\r\n"); // Tiempo de caché en segundos
-    
-    //System.out.println("Content-Type: "+contentTipo+"\r\n");
-    //System.out.println("Content-Length: "+contenidoArchivo.length+"\r\n");
-
-    writer.write("\r\n");
-    writer.flush();
-
-    OutputStream salidaStre = clientSocket.getOutputStream();
-    salidaStre.write(contenidoArchivo);
-    salidaStre.flush();
-}
-    
+   
 }
