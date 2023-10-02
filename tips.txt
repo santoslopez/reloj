@@ -1,0 +1,57 @@
+lanza chaclan:
+la calificación, USAMOS localhost
+usamos toda la velocidad del ancho de banda
+
+en localhost, es como 1giga bits por segundo.
+
+para simular una carga web, lo limitamos por medio de 
+un strowling que tiene las herramientas de 
+desarrollo de google chrome, y lo colocamos 
+en slow. 
+
+https://stackoverflow.com/questions/10328568/simulate-limited-bandwidth-from-within-chrome
+
+
+¿Duda sobre imagen zoom in?
+
+
+¿Descarga la imagen?
+- Colocamos la ruta de la imagen en index.html
+
+o esperarias que seleccionar imagen, 
+y luego colocar un boton.
+
+
+preposesamiento en el protoclo, combiete colocar un boton
+
+sino, cargar las imagenes al servidor, todo depende 
+que se haya descrito en el documento, en el protocolo
+
+1. leer el documento, y contrastar y si tiene 
+coherencia con lo que se realizo.
+
+2. un documento de protocolo, primero se escribe y luego 
+se hace. 
+
+3. hacer los encabezados
+4. cuales son los encabezados de control, como 
+ordenar, si van a ir desordenados. 
+
+5. algunos ejemplos, de algunos casos, descripciones, 
+de los campos. 
+
+6. sino existe, documento, no se califica. 
+
+7. protocolos, se va muy unicos. 
+8. las librerias estan permitidas, se puede
+usar react, ...
+
+se puede usar angular compilado, react compilado. 
+librerias se puede usar lo que uno quiere. 
+
+boostrap, framework de frontend: viu, gionix, next
+, estilo: boostrap, fundation, semantic, material, 
+eskeleton, tailwin, 
+
+
+
