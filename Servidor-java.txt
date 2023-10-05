@@ -10,12 +10,19 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.net.BindException;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.FileReader;
 import java.net.SocketException;
 import java.util.Arrays;
+
+
+
+
 
 public class Servidor{
 
@@ -25,7 +32,6 @@ public class Servidor{
     private static ContentType tipos = new ContentType();
     private static ExecutorService executor = Executors.newFixedThreadPool(valorFixedThreadPool); // Número máximo de hilos
     int PUERTO = 8080;
-    private static byte[] fileData;
     public void iniciar() {
         
         // recuperando el valor del archivo de la configuracion del puerto 
@@ -58,7 +64,7 @@ public class Servidor{
             OutputStream output = clientSocket.getOutputStream()
         ) {
 
-            byte[] buffer = new byte[4096];
+            byte[] buffer = new byte[8092];
             int bytesRead;
             
             // Leer la solicitud del cliente (ignorando las cabeceras por ahora)
@@ -72,28 +78,22 @@ public class Servidor{
 
             // Analizar la solicitud para obtener la ruta del archivo solicitado
             String[] lines = request.toString().split("\r\n");
-            System.out.println("lines: "+lines); 
-
             String[] requestLine = lines[0].split(" ");
             String ruta = requestLine[1].substring(1); // Elimina el primer '/' en la ruta
             
+            /*System.out.println("me enamore: "+ruta);
 
-            System.out.println("estoy en: "+ruta); 
-                    
             String valorRuta = "";
-            
             // indicar el archivo index por defecto
             if (ruta.isEmpty() || ruta.equals("/")) {
-                ruta = "www/index.html";
-            
+                ruta = "index.html";
             }else{
-                ruta = "www/"+ruta;
-            }
+                ruta = ruta;
+            }*/
 
             /**
              * Detectar si el usuario utiliza el movil o computadora
-            */
-
+             */
             String userAgent="";
             for(String line:lines){
                 if (line.startsWith("User-Agent: ")) {
@@ -109,13 +109,11 @@ public class Servidor{
             // Leer el archivo y enviarlo en paquetes
             Path filePath = Paths.get(ruta);
              if (Files.exists(filePath) && Files.isRegularFile(filePath)) {
-                fileData = Files.readAllBytes(filePath);
-
-                //System.out.println("estoy en fileData: "+fileData);
+                byte[] fileData = Files.readAllBytes(filePath);
 
 
                 String contentType = ContentType.getInstancia().recuperarContentType(ruta);
-                System.out.println("contenttype: "+contentType);
+                
                 long fileLengthArchivo = fileData.length;
                 double megasArchivo = (double)fileLengthArchivo/(1024*1024);
 
@@ -132,9 +130,7 @@ public class Servidor{
                                                          
 
                 output.write(responseHeaders.getBytes());                
-                //output.flush();
 
-                
                 if(esDispositivoMovil){
                     System.out.println("Es un dispositivo movil");
 
@@ -188,7 +184,13 @@ public class Servidor{
 
                     }else{
 
-                       
+                        /*for (int i = 0; i < fileData.length; i += packetSize) {
+
+                            int endIndex = Math.min(i + packetSize, fileData.length);
+                            byte[] packetData = Arrays.copyOfRange(fileData,i, endIndex);
+                            output.write(packetData);
+                            output.flush();
+                        }*/
                     }                
                 
                 
@@ -204,45 +206,51 @@ public class Servidor{
                         //int megasTrasferir = 6;
                         //TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
                     }else if (megasArchivo >= 9 && megasArchivo <= 50) {
-                        int megasTrasferir = 3; // Tamaño del paquete en bytes (2 MB)
+                        int megasTrasferir = 5; // Tamaño del paquete en bytes (2 MB)
                     
                         TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
 
                     }else if (megasArchivo >= 51 && megasArchivo <= 189) {
-                        int megasTrasferir = 5 ; // Tamaño del paquete en bytes (2 MB)
+                        int megasTrasferir = 6 ; // Tamaño del paquete en bytes (2 MB)
                     
                         TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
 
                     }else if (megasArchivo >= 190 && megasArchivo <= 219) {
-                        int megasTrasferir = 6; // Tamaño del paquete en bytes (2 MB)
-                    
-                        TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
-
-                    }else if (megasArchivo >= 220 && megasArchivo <= 340) {
                         int megasTrasferir = 7; // Tamaño del paquete en bytes (2 MB)
                     
                         TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
 
-                    }else if (megasArchivo >= 341 && megasArchivo <= 450) {
+                    }else if (megasArchivo >= 220 && megasArchivo <= 340) {
                         int megasTrasferir = 8; // Tamaño del paquete en bytes (2 MB)
                     
                         TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
 
-                    }else if (megasArchivo >= 451 && megasArchivo <= 949) {
-                        int megasTrasferir = 9; // Tamaño del paquete en bytes (2 MB)
+                    }else if (megasArchivo >= 341 && megasArchivo <= 450) {
+                        int megasTrasferir = 11; // Tamaño del paquete en bytes (2 MB)
+                    
+                        TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
+
+                    /*}else if (megasArchivo >= 451 && megasArchivo <= 949) {
+                        int megasTrasferir = 15; // Tamaño del paquete en bytes (2 MB)
                     
                         TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
 
                     }else if (megasArchivo >= 950 && megasArchivo <= 1020) {
-                        int megasTrasferir = 10; // Tamaño del paquete en bytes (2 MB)
+                        int megasTrasferir = 20; // Tamaño del paquete en bytes (2 MB)
                     
                         TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
-
+*/
                     }else{
-  int megasTrasferir = 1; // Tamaño del paquete en bytes (2 MB)
+  int megasTrasferir = 13; // Tamaño del paquete en bytes (2 MB)
                     
                         TransferenciaPaquetes.getInstancia().envio(megasTrasferir,fileData,output,clientSocket);
-                       
+                        /*for (int i = 0; i < fileData.length; i += packetSize) {
+
+                            int endIndex = Math.min(i + packetSize, fileData.length);
+                            byte[] packetData = Arrays.copyOfRange(fileData,i, endIndex);
+                            output.write(packetData);
+                            output.flush();
+                        }*/
                     }
                 
                 }
@@ -264,10 +272,6 @@ public class Servidor{
         } finally {
             try {
                 clientSocket.close();
-                // para liberar memoria, pero falta ver si funciona bien
-                
-                //fileData = null;
-                System.gc();
             } catch (IOException e) {
                 e.printStackTrace();
             }

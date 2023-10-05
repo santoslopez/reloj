@@ -1,56 +1,56 @@
 import java.io.OutputStream;
-import java.util.Arrays;
-import java.net.Socket;
-import java.net.ServerSocket;
 import java.io.IOException;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 
-
-public class TransferenciaPaquetes{
-
+public class TransferenciaPaquetes {
     private static TransferenciaPaquetes instancia;
-    
-    public static TransferenciaPaquetes getInstancia(){
-        if(instancia==null){
-            instancia=new TransferenciaPaquetes();
+
+    public static TransferenciaPaquetes getInstancia() {
+        if (instancia == null) {
+            instancia = new TransferenciaPaquetes();
         }
         return instancia;
     }
 
-  
-    public void envio(int cantidadMegasTransferir,byte[] fileData,OutputStream output,Socket clientSocket){
-        try{
-            //cantidadMegasTransferir = 11 * 1024 * 1024; // Tamaño del paquete en bytes (2 MB)
-            /*for (int i = 0; i < fileData.length; i += cantidadMegasTransferir) {
-                int endIndex = Math.min(i + cantidadMegasTransferir, fileData.length);
-                byte[] packetData = Arrays.copyOfRange(fileData,i,endIndex);
-                output.write(packetData);
-                output.flush();
+    public void envio(int megasPorPaquete, byte[] fileData, OutputStream output, Socket clientSocket) {
+        int numHilos = 3;
+        ExecutorService executor = Executors.newFixedThreadPool(numHilos);
+        int offset = 0;
+        int bytesPorMega = 1024 * 1024; // 1 megabyte en bytes
+        int bytesPorPaquete = megasPorPaquete * bytesPorMega;
 
-            }*/
-             // Enviar el archivo en bloques más pequeños
-            //int packetSize = 8192; // Tamaño del paquete en bytes (8 KB)
-            int offset = 0;
-
-            while (offset < fileData.length) {
-                int remainingBytes = fileData.length - offset;
-                int bytesToSend = Math.min(cantidadMegasTransferir,remainingBytes);
-                output.write(fileData, offset, bytesToSend);
-                output.flush();
-                offset += bytesToSend;
-            }
-        } catch (OutOfMemoryError e) {
-        // Maneja la excepción aquí
-        e.printStackTrace(); // o cualquier otro manejo adecuado
-
-        }catch(Exception ex){
-            System.out.println("Se produjo el siguiente error: "+ex.getMessage());
-        } finally {
         try {
-            clientSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+            while (offset < fileData.length) {
+                final int inicio = offset;
+                int fin = Math.min(inicio + bytesPorPaquete, fileData.length);
+                offset = fin;
 
+                byte[] packetData = Arrays.copyOfRange(fileData, inicio, fin);
+
+                executor.execute(() -> {
+                    try {
+                        output.write(packetData);
+                        output.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }
+
+            executor.shutdown();
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            try {
+                output.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
