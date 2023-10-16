@@ -1,5 +1,5 @@
 run:
 	javac *.java
-	java -XX:MaxDirectMemorySize=1g -Xmx2g MenuPrincipal
+	java -Xmx2g -Xms2g MenuPrincipal
 clean:
 	rm -f *.class

@@ -1,8 +1,5 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
-//const rutaImagen = "assets/img/";
-
 const imagenes = [
     "assets/img/josh-hild-zWCKJjPCl0s-unsplash.jpg",
     "assets/img/jonathan-notay-e_hq1euh5lI-unsplash.jpg",
@@ -25,49 +22,69 @@ const textos = [
 ];
 
 let indice = 0;
-// Función para cargar y mostrar una imagen en el canvas
+const imagenesCargadas = {}; // Objeto para hacer un seguimiento de las imágenes cargadas
+
 function cargarImagen(indice) {
-    const url = imagenes[indice]; // Obtén la URL de la imagen por índice
-    const image = new Image();
-    image.src = url;
+    const url = imagenes[indice];
 
-    image.onload = function () {
-        // Limpia el canvas antes de dibujar la nueva imagen
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (imagenesCargadas[url]) {
+        // Si la imagen ya está en caché, no la vuelvas a cargar
+        mostrarImagen(imagenesCargadas[url]);
+       
+    } else {
+        const image = new Image();
+        image.src = url;
 
-        // Calcula el tamaño de la imagen en el canvas
-        let canvasWidth = canvas.width;
-        let canvasHeight = (canvasWidth / image.width) * image.height;
-
-        // Asegura que la imagen no se estire más allá del límite de 300x300
-        if (canvasHeight > canvas.height) {
-            canvasHeight = canvas.height;
-            canvasWidth = (canvasHeight / image.height) * image.width;
-        }
-
-        // Centra la imagen en el canvas
-        const x = (canvas.width - canvasWidth) / 2;
-        const y = (canvas.height - canvasHeight) / 2;
-
-        // Dibuja la imagen en el canvas
-        ctx.drawImage(image, x, y, canvasWidth, canvasHeight);
-
-        // Muestra el texto debajo de la imagen
-        document.getElementById("imagen-texto").textContent = textos[indice];
-    };
-
+        image.onload = function () {
+            imagenesCargadas[url] = image; // Almacena la imagen en el objeto de imágenes cargadas
+            mostrarImagen(image);
+        };
+    }
 }
 
-// Cargar la imagen inicial (en este caso, la imagen en el índice 0)
+function mostrarImagen(image) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Calcula el tamaño de la imagen en el canvas
+    let canvasWidth = canvas.width;
+    let canvasHeight = (canvasWidth / image.width) * image.height;
+
+    // Asegura que la imagen no se estire más allá del límite de 300x300
+    if (canvasHeight > canvas.height) {
+        canvasHeight = canvas.height;
+        canvasWidth = (canvasHeight / image.height) * image.width;
+    }
+
+    // Centra la imagen en el canvas
+    const x = (canvas.width - canvasWidth) / 2;
+    const y = (canvas.height - canvasHeight) / 2;
+
+    // Dibuja la imagen en el canvas
+    ctx.drawImage(image, x, y, canvasWidth, canvasHeight);
+
+    // Muestra el texto debajo de la imagen
+    document.getElementById("imagen-texto").textContent = textos[indice];
+}
+
 cargarImagen(indice);
+
+// Función para actualizar el estado de los botones
+function actualizarBotones() {
+    // Habilitar o deshabilitar el botón "Anterior"
+    document.getElementById("anterior").disabled = (indice === 0);
+    // Habilitar o deshabilitar el botón "Siguiente"
+    document.getElementById("siguiente").disabled = (indice === imagenes.length - 1);
+}
+
+
+
 // Evento para el botón "Anterior"
 document.getElementById("anterior").addEventListener("click", function () {
     if (indice > 0) {
         indice--;
         cargarImagen(indice); // Cargar la imagen anterior
     }
-    // Desbloquear el botón "Siguiente" ya que no estamos en la última imagen
-    document.getElementById("siguiente").disabled = false;
+    actualizarBotones();
 });
 
 // Evento para el botón "Siguiente"
@@ -76,10 +93,7 @@ document.getElementById("siguiente").addEventListener("click", function () {
         indice++;
         cargarImagen(indice); // Cargar la siguiente imagen
     }
-    // Si estamos en la última imagen, bloquear el botón "Siguiente"
-    if (indice === imagenes.length - 1) {
-        document.getElementById("siguiente").disabled = true;
-    }
+    actualizarBotones();
 });
 
 // Evento para el botón "Ampliar Imagen"

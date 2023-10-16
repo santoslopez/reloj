@@ -1,0 +1,6 @@
+https://www.delftstack.com/es/howto/java/java.net.socketexception-broken-pipe/
+
+
+
+lectura de archivo o escritura
+https://www.geeksforgeeks.org/files-isreadable-method-in-java-with-examples/
