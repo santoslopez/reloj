@@ -33,9 +33,10 @@ public class MenuPrincipal{
         System.out.println("Seleccione una opcion");
         System.out.println("1. Configurar puerto");
         System.out.println("2. Configurar numero threads");
-        System.out.println("3. Revisar configuración de puertos y hilos");
-        System.out.println("4. Iniciar servidor");
-        System.out.println("5. Salir");
+        System.out.println("3. Revisar configuración de puertos, hilos y megas");
+        System.out.println("4. Configurar megas a transferir");
+        System.out.println("5. Iniciar servidor");
+        System.out.println("6. Salir");
 
         int numeroOpcion = 0;
         boolean entradaValida = false;
@@ -43,7 +44,7 @@ public class MenuPrincipal{
         do {
             try {
                 numeroOpcion = scanner.nextInt();
-                if (numeroOpcion >= 1 && numeroOpcion <= 5) {
+                if (numeroOpcion >= 1 && numeroOpcion <= 6) {
                     entradaValida = true;
                 } else {
                     System.out.println("Opción inválida. Ingrese un número del 1 al 5.");
@@ -82,15 +83,33 @@ public class MenuPrincipal{
             System.out.println("Revisando configuración de puertos y threads");
             int puertoAlmacenado = ValidarArchivoTexto.getInstancia().getPrimeraFilaValorArchivo("puerto.txt"); 
             int hiloAlmacenado = ValidarArchivoTexto.getInstancia().getPrimeraFilaValorArchivo("hilos.txt");
+            int megasAlmacenadoTransferir = ValidarArchivoTexto.getInstancia().getPrimeraFilaValorArchivo("megasTransferir.txt");
             System.out.println("Número de puerto: "+puertoAlmacenado);
             System.out.println("Número de hilos: "+hiloAlmacenado);
+            System.out.println("Número de megas a transferir: "+megasAlmacenadoTransferir);
+
             //ValidarArchivoTexto.().mostrarContenidoArchivo("hilos.txt");
             menu();
         }else  if(numeroOpcion==4){
+            System.out.println("Ingrese el número de megas a transferir por paquete");
+            int megasTransferir = scanner.nextInt();
+
+            if((megasTransferir>=0)){
+            
+                System.out.println("El numero de MEGAS ingresado es: "+megasTransferir);
+            
+                ValidarArchivoTexto.getInstancia().validarArchivo("megasTransferir",megasTransferir,"megasTransferir.txt","Número de megas a transferir almacenado correctamente.","escritura");
+                menu();
+            }else{
+                System.out.println("Número de megas a transferir es invalido");
+
+                menu();
+            }
+        }else  if(numeroOpcion==5){
             System.out.println("Iniciando servidor");
             Servidor server = new Servidor();
             server.iniciar();
-        }else  if(numeroOpcion==5){
+        }else  if(numeroOpcion==6){
             System.out.println("Saliendo del programa.");
         }
     }

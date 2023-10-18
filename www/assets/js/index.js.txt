@@ -1,24 +1,28 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
 const imagenes = [
-    "assets/img/josh-hild-zWCKJjPCl0s-unsplash.jpg",
-    "assets/img/jonathan-notay-e_hq1euh5lI-unsplash.jpg",
-    "assets/img/330GigaPixeles_217MB.jpg",
-    "assets/img/fabrizio-coco-O2MKB1Pf6hE-unsplash.jpg",
-    "assets/img/360.jpg",
+    "assets/img/josh-hild-zWCKJjPCl0s-unsplash.jpg",ssss
     "assets/img/330GigaPixeles.png",
-    "assets/img/208GigaPixeles.jpg",
-    "assets/img/432GigaPixeles.jpg"
+    "assets/img/jonathan-notay-e_hq1euh5lI-unsplash.jpg",xxxx
+    "assets/img/330GigaPixeles_217MB.jpg",XXXX
+    "assets/img/fabrizio-coco-O2MKB1Pf6hE-unsplash.jpg",
+    "assets/img/360.jpg",xxx
+    "assets/img/330GigaPixeles.png",
+    "assets/img/208GigaPixeles.jpg",XXX
+    "assets/img/432GigaPixeles.jpg"XXXX
 ];
+
 const textos = [
     "Imagen 1: 3 megas",
-    "Imagen 2: 2.2 megas",
-    "Imagen 3: 217.9 megas",
-    "Imagen 4: 3.4 megas",
-    "Imagen 5: 24.9 megas",
-    "Imagen 6: 330 megas",
-    "Imagen 7: 435.7 megas",
-    "Imagen 8: 993.8 megas"
+    "Imagen 2: 330 megas",
+    "Imagen 3: 2.2 megas",
+    "Imagen 4: 217.9 megas",
+    "Imagen 5: 3.4 megas",
+    "Imagen 6: 24.9 megas",
+    "Imagen 7: 330 megas",
+    "Imagen 8: 435.7 megas",
+    "Imagen 9: 993.8 megas"
 ];
 
 let indice = 0;

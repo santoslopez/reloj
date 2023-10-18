@@ -1,5 +1,9 @@
-run:
-	javac *.java
-	java -Xmx2g -Xms2g MenuPrincipal
+run: compile
+	java -Xmx2g -Xms2g -cp bin MenuPrincipal
+
+compile: clean
+	mkdir -p bin
+	javac -d bin *.java
+
 clean:
-	rm -f *.class
+	rm -rf bin

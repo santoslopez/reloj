@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.NoSuchFileException;
+
 
 public class TransferenciaPaquetes {
     // patron de diseno singleton para crear una sola instancia de la clase
@@ -20,25 +22,12 @@ public class TransferenciaPaquetes {
         }
         return instancia;
     }
-    
-    public double obtenerTamanioArchivoEnMB(String rutaArchivo) {
-        try {
-            Path filePath = Paths.get(rutaArchivo);
-            long fileSizeInBytes = Files.size(filePath);
-            double fileSizeInMB = (double) fileSizeInBytes / (1024 * 1024);
-            return fileSizeInMB;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -1.0; // Manejo de errores, puedes devolver un valor negativo si hay un problema
-        }
-    }
-    
+        
     public void envio(int megasPorPaquete, String rutaArchivo, OutputStream output, Socket clientSocket) {
-        int numHilos = 4;
+        int numHilos = 5;
         ExecutorService executor = Executors.newFixedThreadPool(numHilos);
         int offset = 0;
         int bytesPorMega = 1024 * 1024; // 1 megabyte en bytes
-        //double megasArchivo = (double)fileLengthArchivo/(1024*1024);
         int bytesPorPaquete = megasPorPaquete * bytesPorMega;
 
         try {
@@ -78,6 +67,12 @@ public class TransferenciaPaquetes {
             Thread.currentThread().interrupt();
         } catch (IOException e) {
             e.printStackTrace();
+        //}catch (NoSuchFileException nsfex) {
+            // Maneja la excepción aquí
+            //nsfex.printStackTrace(); // o cualquier otro manejo adecuado
+          //  System.out.println("Se produjo el siguiente error de NoSuchFileException: "+nsfex.getMessage());
+            //String respuesta404 = Headers.getHeader404();
+            
         } finally {
             try {
                 output.close();
@@ -85,6 +80,6 @@ public class TransferenciaPaquetes {
                 e.printStackTrace();
             }
         }
-}
+    }
 
 }

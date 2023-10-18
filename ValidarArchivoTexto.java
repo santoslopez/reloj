@@ -32,7 +32,7 @@ public class ValidarArchivoTexto{
                     writer.write(String.valueOf(valor));
                     System.out.println(mensaje);
                 } catch (IOException e) {
-                    System.out.println("Error al escribir en el archivo.");
+                    System.out.println("Error al escribir en el archivo: "+e.getMessage());
                 }
             }else{
                 System.out.println("No se reconoce el tipo de acción");
@@ -51,7 +51,7 @@ public class ValidarArchivoTexto{
             BufferedReader br = new BufferedReader(new FileReader(nombreArchivo));
             primeraLineaHilos = br.readLine();     
         }catch(Exception e){
-            System.out.println("Error al iniciar el servidor");
+            System.out.println("Error al iniciar el servidor: "+e.getMessage());
         }
         // convertimos el numero recuperado en entero
         int numeroHilosArchivoTexto = Integer.parseInt(primeraLineaHilos);

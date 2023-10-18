@@ -1,0 +1,132 @@
+import java.io.OutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.InputStream;
+
+
+public class TransferenciaPaquetes {
+    private static TransferenciaPaquetes instancia;
+    private AtomicInteger secuencia = new AtomicInteger(0);
+
+    public static TransferenciaPaquetes getInstancia() {
+        if (instancia == null) {
+            instancia = new TransferenciaPaquetes();
+        }
+        return instancia;
+    }
+
+    public void envio(int megasPorPaquete, String rutaArchivo, OutputStream output, Socket clientSocket) {
+        int numHilos = 4;
+        ExecutorService executor = Executors.newFixedThreadPool(numHilos);
+        int offset = 0;
+        int bytesPorMega = 1024 * 1024;
+        int bytesPorPaquete = megasPorPaquete * bytesPorMega;
+
+        try {
+            Path filePath = Paths.get(rutaArchivo);
+            // Verificar que el archivo existe y es legible
+            if (Files.exists(filePath) && Files.isRegularFile(filePath) && Files.isReadable(filePath)) {
+                long fileSize = Files.size(filePath);
+
+                int secuenciaActual = secuencia.getAndIncrement();
+                byte[] buffer = new byte[bytesPorPaquete];
+                try (InputStream inputStream = Files.newInputStream(filePath)) {
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        byte[] packetData = new byte[bytesRead];
+                        System.arraycopy(buffer, 0, packetData, 0, bytesRead);
+
+                        executor.execute(() -> {
+                            try {
+                                enviarPaqueteConSecuencia(output, packetData, secuenciaActual);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    }
+                }
+                executor.shutdown();
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } else {
+                String respuesta404 = Headers.getHeader404();
+                output.write(respuesta404.getBytes());
+                output.flush();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                output.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void enviarPaqueteConSecuencia(OutputStream output, byte[] packetData, int secuencia) throws IOException {
+        output.write(packetData);
+        output.flush();
+
+        boolean confirmado = esperarConfirmacion(secuencia);
+        if (!confirmado) {
+            retransmitirPaquete(output, packetData, secuencia);
+        }
+    }
+
+    private boolean esperarConfirmacion(int secuencia) {
+        //try {
+            long startTime = System.currentTimeMillis();
+            long tiempoEspera = 10000; // 10 segundos de tiempo de espera máximo
+
+            while (System.currentTimeMillis() - startTime < tiempoEspera) {
+                boolean confirmacionRecibida = recibirConfirmacion(secuencia);
+                if (confirmacionRecibida) {
+                    return true;
+                }
+            }
+
+           // return false;
+        //} catch (IOException e) {
+        //    e.printStackTrace();
+            return false;
+        //}
+    }
+
+    private void retransmitirPaquete(OutputStream output, byte[] packetData, int secuencia) {
+        try {
+            int intentosMaximos = 3;
+
+            for (int intento = 0; intento < intentosMaximos; intento++) {
+                output.write(packetData);
+                output.flush();
+
+                boolean confirmado = esperarConfirmacion(secuencia);
+                if (confirmado) {
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private boolean recibirConfirmacion(int secuencia) {
+        // Implementa la lógica para recibir una confirmación del receptor
+        // Esto depende de tu protocolo de comunicación y cómo se manejan las confirmaciones
+        // Aquí asumimos que se espera recibir un byte específico como confirmación
+        // Puedes adaptarlo a tus necesidades reales.
+        int receivedConfirmation = /* Lógica para recibir la confirmación como un valor entero */;
+
+        // Comparamos el valor recibido con el número de secuencia
+        return receivedConfirmation == secuencia;
+    }
+}
